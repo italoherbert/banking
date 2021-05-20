@@ -9,6 +9,8 @@ A transferência agendada também envolve as operações de débito na conta ori
 
 È possível também executar as operações pela data. Por exemplo, executar todas as operações com data de execução para o dia atual ou outra data. A possibilidade de executar as operações marcadas para uma data futura pode ser utilizada para fins de teste. Em caso de haver operações que não tenham sido possíveis de executar por falta de valor suficiente na conta de origem, elas são retornadas pelo webservice para o cliente em formato json.
 
+Também é possível a consulta pelas operações agendadas referentes a uma determinada conta pelo Identificador dela.
+
 A taxa cobrada também está tratada na operação de transferência, conforme as regras definidas no desafio.
 
 # testes de unidade
