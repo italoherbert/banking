@@ -7,7 +7,7 @@ Os depósitos e saques podem ser executados imediatamente ou agendados e as tran
 
 A transferência agendada também envolve as operações de débito na conta origem e crédito na conta destino, logo, também está sujeita a possibilidade de a conta de origem não possuir valor suficiente para realização da trasferência.
 
-È possível também executar as operações pela data. Por exemplo, executar todas as operações com data de execução para o dia atual ou outra data. A possibilidade de executar as operações marcadas para uma data futura pode ser utilizada para fins de teste. Em caso de haver operações que não tenham sido possíveis de executar por falta de valor suficiente na conta de origem, são retornadas pelo webservice para o cliente em formato json.
+È possível também executar as operações pela data. Por exemplo, executar todas as operações com data de execução para o dia atual ou outra data. A possibilidade de executar as operações marcadas para uma data futura pode ser utilizada para fins de teste. Em caso de haver operações que não tenham sido possíveis de executar por falta de valor suficiente na conta de origem, elas são retornadas pelo webservice para o cliente em formato json.
 
 A taxa cobrada também está tratada na operação de transferência, conforme as regras definidas no desafio.
 
