@@ -8,7 +8,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class Credit extends Transaction {
-	
+				
 	@Override
 	public int getType() {
 		return CREDIT;

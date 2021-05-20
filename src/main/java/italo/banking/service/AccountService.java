@@ -1,12 +1,15 @@
 package italo.banking.service;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import italo.banking.component.TransactionManager;
 import italo.banking.exception.AccountNotFoundException;
+import italo.banking.exception.CreditNotEnoughException;
 import italo.banking.exception.DateBeforeSchedulingDateException;
 import italo.banking.exception.DestAccountNotFoundException;
 import italo.banking.exception.HolderAlreadyExistsException;
@@ -26,7 +29,7 @@ public class AccountService {
 	@Autowired
 	private TransactionManager manager;
 			
-	public void registryAccount( SaveAccountRequest request ) throws HolderAlreadyExistsException {					
+	public AccountResponse registryAccount( SaveAccountRequest request ) throws HolderAlreadyExistsException {					
 		if ( manager.existsAccountByHolder( request.getHolder() ) )
 			throw new HolderAlreadyExistsException();
 				
@@ -37,17 +40,50 @@ public class AccountService {
 		a.setCreationDate( new Date() ); 
 		
 		manager.addAccount( a );
+		
+		AccountResponse resp = new AccountResponse();
+		manager.carregaAccountResponse( resp, a );
+		
+		return resp;
 	}
 	
 	public AccountResponse findById( int accountId ) throws AccountNotFoundException {
-		Account c = manager.getById( accountId );
+		Account a = manager.getById( accountId );
 		
 		AccountResponse resp = new AccountResponse();
-		resp.setHolder( c.getHolder() );
-		resp.setBalance( c.getBalance() );
+		resp.setHolder( a.getHolder() );
+		resp.setBalance( a.getBalance() );
 		return resp;
 	}
+	
+	public List<AccountResponse> list() {
+		List<AccountResponse> responses = new ArrayList<>();
+		
+		for( Account a : manager.getAccounts() ) {			
+			AccountResponse resp = new AccountResponse();
+			resp.setHolder( a.getHolder() );
+			resp.setBalance( a.getBalance() );
 			
+			responses.add( resp );
+		}
+		
+		return responses;
+	}
+			
+	public void credit( int accountId, double value ) throws AccountNotFoundException {
+		if ( !manager.existById( accountId ) )
+			throw new AccountNotFoundException();
+		
+		manager.execCreditOperation( accountId, value );
+	}
+	
+	public void debit( int accountId, double value ) throws AccountNotFoundException, CreditNotEnoughException {
+		if ( !manager.existById( accountId ) )
+			throw new AccountNotFoundException();
+		 
+		manager.execDebitOperation( accountId, value );
+	}
+	
 	public void scheduleCredit( int accountId, TransactionRequest request ) 
 			throws InvalidDateFormatException, DateBeforeSchedulingDateException, AccountNotFoundException {
 		if ( !manager.existById( accountId ) )

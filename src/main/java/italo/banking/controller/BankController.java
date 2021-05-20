@@ -12,11 +12,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import italo.banking.exception.AccountNotFoundException;
+import italo.banking.exception.CreditNotEnoughException;
 import italo.banking.exception.DateBeforeSchedulingDateException;
 import italo.banking.exception.DestAccountNotFoundException;
 import italo.banking.exception.HolderAlreadyExistsException;
 import italo.banking.exception.InvalidDateFormatException;
 import italo.banking.exception.SourceAccountNotFoundException;
+import italo.banking.model.request.CashRequest;
+import italo.banking.model.request.DepositRequest;
 import italo.banking.model.request.SaveAccountRequest;
 import italo.banking.model.request.TransactionRequest;
 import italo.banking.model.response.AccountResponse;
@@ -35,39 +38,33 @@ public class BankController {
 	@Autowired
 	private TransactionService scheduleTransactionService;
 		
-	@PostMapping("/create/account")
+	@PostMapping("/account/create")
 	public ResponseEntity<Object> createAccount( @RequestBody SaveAccountRequest request ) {
 		try {
-			accountService.registryAccount( request );
-			return ResponseEntity.ok().build();
+			AccountResponse resp = accountService.registryAccount( request );
+			return ResponseEntity.ok( resp );
 		} catch (HolderAlreadyExistsException e) {
 			return ResponseEntity.badRequest().body( new ErroResponse( ErroResponse.HOLDER_ALREADY_EXISTS ) );
 		}
 	}
 	
 	@PostMapping(value="/cash/{accountId}")
-	public ResponseEntity<Object> cash( @PathVariable int accountId, @RequestBody TransactionRequest request ) {
+	public ResponseEntity<Object> cash( @PathVariable int accountId, @RequestBody CashRequest request ) {
 		try {
-			accountService.scheduleDebit( accountId, request );
+			accountService.debit( accountId, request.getValue() );
 			return ResponseEntity.ok().build();
-		} catch (InvalidDateFormatException e) {
-			return ResponseEntity.badRequest().body( new ErroResponse( ErroResponse.INVALID_DATE_FORMAT ) );
-		} catch (DateBeforeSchedulingDateException e) {
-			return ResponseEntity.badRequest().body( new ErroResponse( ErroResponse.DATE_BEFORE_SCHEDULING_DATE ) );
 		} catch (AccountNotFoundException e) {
 			return ResponseEntity.badRequest().body( new ErroResponse( ErroResponse.ACCOUNT_NOT_FOUND ) );
+		} catch (CreditNotEnoughException e) {
+			return ResponseEntity.badRequest().body( new ErroResponse( ErroResponse.CREDIT_NOT_ENOUGH ) );
 		}
 	}
 	
 	@PostMapping(value="/deposit/{accountId}")
-	public ResponseEntity<Object> deposit( @PathVariable int accountId, @RequestBody TransactionRequest request ) {
+	public ResponseEntity<Object> deposit( @PathVariable int accountId, @RequestBody DepositRequest request ) {
 		try {
-			accountService.scheduleCredit( accountId, request );
+			accountService.credit( accountId, request.getValue() );
 			return ResponseEntity.ok().build();
-		} catch (InvalidDateFormatException e) {
-			return ResponseEntity.badRequest().body( new ErroResponse( ErroResponse.INVALID_DATE_FORMAT ) );
-		} catch (DateBeforeSchedulingDateException e) {
-			return ResponseEntity.badRequest().body( new ErroResponse( ErroResponse.DATE_BEFORE_SCHEDULING_DATE ) );
 		} catch (AccountNotFoundException e) {
 			return ResponseEntity.badRequest().body( new ErroResponse( ErroResponse.ACCOUNT_NOT_FOUND ) );
 		}
@@ -90,7 +87,7 @@ public class BankController {
 		}
 	}
 	
-	@GetMapping(value="/get/account/{accountId}")
+	@GetMapping(value="/account/get/{accountId}")
 	public ResponseEntity<Object> findAccount( @PathVariable int accountId ) {
 		try {
 			AccountResponse resp = accountService.findById( accountId );
@@ -100,7 +97,13 @@ public class BankController {
 		}
 	}
 	
-	@GetMapping(value="/lista/{accountId}")
+	@GetMapping(value="/account/list")
+	public ResponseEntity<Object> listAccounts( @PathVariable int accountId ) {
+		List<AccountResponse> list = accountService.list();
+		return ResponseEntity.ok( list );		
+	}
+	
+	@GetMapping(value="/lista/transactions/{accountId}")
 	public ResponseEntity<Object> listaTransactionsByAccountId( @PathVariable int accountId ) {
 		try {
 			List<TransactionResponse> list = scheduleTransactionService.listTransactionsByAccountId( accountId );

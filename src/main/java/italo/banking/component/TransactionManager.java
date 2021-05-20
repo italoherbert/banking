@@ -1,10 +1,8 @@
 package italo.banking.component;
 
 import java.text.ParseException;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedList;
-import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -31,7 +29,10 @@ public class TransactionManager {
 	@Autowired
 	private DateUtil dateUtil;
 	
-	private List<Transaction> schenduleTransactions = new ArrayList<>();	
+	@Autowired
+	private WithRateCalculator withRateCalculator;
+	
+	private LinkedList<Transaction> schenduleTransactions = new LinkedList<>();	
 	private LinkedList<Account> accounts = new LinkedList<>();
 	private int startId = 1000000;
 			
@@ -49,6 +50,11 @@ public class TransactionManager {
 	
 	public int nextId() {
 		return startId++;
+	}
+	
+	public void applyRate( int accountId, int days ) throws AccountNotFoundException {
+		Account a = this.getById( accountId );		
+		a.setBalance( withRateCalculator.calculatesValueWithRate( days, a.getBalance() ) ); 
 	}
 	
 	public void execTransferOperation( int srcAccountId, int destAccountId, double value ) 
@@ -140,12 +146,13 @@ public class TransactionManager {
 	}
 	
 	public void carregaAccountResponse( AccountResponse resp, Account a ) {
+		resp.setId( a.getId() ); 
 		resp.setHolder( a.getHolder() );
 		resp.setCreationDate( dateUtil.toString( a.getCreationDate() ) );
-		resp.setBalance( a.getBalance() );
+		resp.setBalance( a.getBalance() );		
 	}
 
-	public List<Transaction> getSchenduleTransactions() {
+	public LinkedList<Transaction> getSchenduleTransactions() {
 		return schenduleTransactions;
 	}
 

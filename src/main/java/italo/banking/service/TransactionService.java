@@ -3,13 +3,13 @@ package italo.banking.service;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import italo.banking.component.TransactionManager;
-import italo.banking.component.WithRateCalculator;
 import italo.banking.exception.AccountNotFoundException;
 import italo.banking.exception.CreditNotEnoughException;
 import italo.banking.exception.DestAccountNotFoundException;
@@ -28,10 +28,7 @@ public class TransactionService {
 	
 	@Autowired
 	private TransactionManager manager;
-	
-	@Autowired
-	private WithRateCalculator withRateCalculator;
-	
+		
 	@Autowired
 	private DateUtil dateUtil;		
 	
@@ -77,10 +74,11 @@ public class TransactionService {
 			
 	public List<TransactionResponse> execSchedulingTransactions( Date date ) {			
 		List<TransactionResponse> transactionsWithoutEnoughCredits = new ArrayList<>();
-		int size = manager.getSchenduleTransactions().size();
-		for( int i = 0; i < size; i++ ) {
-			Transaction t = manager.getSchenduleTransactions().get( i );
-			if ( !dateUtil.sameDay( t.getSchedulingDate(), date ) )
+		LinkedList<Transaction> transactions = manager.getSchenduleTransactions();
+		while( !transactions.isEmpty() ) {
+			Transaction t = transactions.pop();
+			
+			if ( !dateUtil.sameDay( t.getOperationDate(), date ) )
 				continue;
 			
 			switch( t.getType() ) {
@@ -95,11 +93,7 @@ public class TransactionService {
 					break;
 				default:
 					throw new RuntimeException( "TIPO DE TRANSAÇÃO INVÁLIDA" );
-			}
-			
-			manager.removeScheduleTransaction( i );
-			i--;
-			size--;
+			}						
 		}				
 		
 		return transactionsWithoutEnoughCredits;
@@ -141,13 +135,16 @@ public class TransactionService {
 	private void execTransferOperation( Transaction t, List<TransactionResponse> transactionWithoutEnoughCredits ) {
 		int srcAccountId = ((Transfer)t).getAccountId();
 		int destAccountId = ((Transfer)t).getDestAccountId();
-		try {						
-			double value = t.getValue();
-			int days = dateUtil.diferenceToDays( t.getOperationDate(), t.getSchedulingDate() );			
+		try {									
+			double value = t.getValue();												
+			manager.execTransferOperation( srcAccountId, destAccountId, value );
 			
-			t.setValue( withRateCalculator.getValueWithRate( days, value ) );
-			
-			manager.execTransferOperation( srcAccountId, destAccountId, t.getValue() );
+			try {
+				int days = dateUtil.diferenceToDays( t.getOperationDate(), t.getSchedulingDate() );			
+				manager.applyRate( srcAccountId, days );
+			} catch ( AccountNotFoundException e ) {
+				throw new SourceAccountNotFoundException();
+			}			
 		} catch ( DestAccountNotFoundException e ) {
 			throw new RuntimeException( "INCONSISTÊNCIA: CONTA NÃO ENCONTRADA PELO ID="+srcAccountId+"." );
 		} catch ( SourceAccountNotFoundException e ) {
@@ -156,7 +153,7 @@ public class TransactionService {
 			TransactionResponse resp = manager.createTransactionResponse( t.getType() );
 			manager.carregaTransactionResponse( resp, t ); 
 			transactionWithoutEnoughCredits.add( resp );
-		}
+		} 
 	}
 		
 }
