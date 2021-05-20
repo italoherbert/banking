@@ -9,12 +9,12 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>italo</groupId>
-	<artifactId>agenda-bancaria</artifactId>
+	<artifactId>banking</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>agenda-bancaria</name>
-	<description>Sistema de Gerenciamento de Transações Bancárias</description>
+	<name>banking</name>
+	<description>Sistema de Gerenciamento de Operações Bancárias</description>
 	<properties>
-		<java.version>15</java.version>
+		<java.version>16</java.version>
 	</properties>
 	<dependencies>
 		<dependency>
