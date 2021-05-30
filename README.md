@@ -1,6 +1,6 @@
 # banking
 
-O Sistema de gerenciamento de operações bancárias tem sua descrição no arquivo "DESCRICAO_DO_PROJETO.PDF" contido na raiz deste repositório!
+A descrição e especificação do sistema de gerenciamento de operações bancárias está no arquivo "DESCRICAO_DO_PROJETO.PDF" contido na raiz do projeto. Você pode baixar (ou clonar o projeto) e ler o PDF.
 
 O sistema de gerenciamento de operações bancárias "banking system" permite as operações básicas como: criação de conta para o titular, acesso aos dados da conta pelo número identificador, depósitos, saques e transferências entre contas.
 
